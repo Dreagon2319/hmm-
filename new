@@ -1,56 +1,204 @@
-// ==UserScript==
-// @name         New Account
-// @namespace    http://tampermonkey.net/
-// @version      2026-09-27
-// @description  try to take over the world!
-// @author       You
-// @match        https://bloxd.io/*
-// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @grant        none
-// ==/UserScript==
 
-(function() {
+// new account  +  NAme Changer Auto
+
+(function () {
     'use strict';
 
-   (() => {
-  const targets = new Set([
-    'bloxd',
-    '___Secure-3PSIDMC',
-    'bb_u_id'
-  ]);
+    let isRunning = false;
 
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'F6') return;
+    const targets = new Set([
+        'bloxd',
+        '___Secure-3PSIDMC',
+        'bb_u_id'
+    ]);
 
-    e.preventDefault();
+    document.addEventListener('keydown', async e => {
+        if (e.key !== 'F6' || isRunning) return;
 
-    const found = document.cookie
-      .split(';')
-      .map(c => c.trim().split('=')[0])
-      .filter(name => targets.has(name));
+        e.preventDefault();
+        isRunning = true;
 
-    if (found.length === 0) {
-      alert('None of the target cookies were found.');
-      return;
+        try {
+            // STEP 1: Click first button
+            const firstSelector = ".NewButton.BlueButton.ChooseRandomNameButton";
+            const secondSelector = ".NewButton.BlueButton.ChooseNameButton";
+
+            const firstButton = document.querySelector(firstSelector);
+
+            if (!firstButton) {
+                console.log("❌ First button not found!");
+                return;
+            }
+
+            firstButton.click();
+            console.log("✅ First button clicked!");
+
+            // Wait 1 second
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // STEP 2: Click second button
+            const secondButton = document.querySelector(secondSelector);
+
+            if (!secondButton) {
+                console.log("❌ Second button not found!");
+                return;
+            }
+
+            secondButton.click();
+            console.log("✅ Second button clicked!");
+
+            console.log("🎉 Button sequence completed!");
+
+            // Wait 2 seconds before cookie process
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // STEP 3: Find target cookies
+            const found = document.cookie
+                .split(';')
+                .map(c => c.trim().split('=')[0])
+                .filter(name => targets.has(name));
+
+            if (found.length === 0) {
+                alert('None of the target cookies were found.');
+                return;
+            }
+
+            // STEP 4: Ask for confirmation
+            const message =
+                `Found cookie(s):\n\n${found.join('\n')}\n\n` +
+                'Delete them and reload the page?';
+
+            if (confirm(message)) {
+
+                // STEP 5: Delete cookies
+                found.forEach(name => {
+                    document.cookie =
+                        `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+                });
+
+                console.log('Deleted:', found);
+
+                // STEP 6: Reload page
+                location.reload();
+
+            } else {
+                console.log('Cookie deletion cancelled.');
+            }
+
+        } finally {
+            isRunning = false;
+        }
+    });
+
+    console.log('Ready — press F6 to start the sequence.');
+
+})();
+
+
+
+// TIME
+
+
+(() => {
+    // Remove previous timer if already running
+    document.getElementById("custom-page-timer")?.remove();
+
+    let seconds = 0;
+    let interval = null;
+
+    // Main container
+    const container = document.createElement("div");
+    container.id = "custom-page-timer";
+
+    Object.assign(container.style, {
+        position: "fixed",
+        top: "10px",
+        left: "10px",
+        zIndex: "999999999",
+        textAlign: "center",
+        fontFamily: "Arial, sans-serif",
+        padding: "8px",
+        borderRadius: "8px",
+        background: "transparent",
+        color: "#00ff00",
+        fontWeight: "bold",
+        pointerEvents: "auto"
+    });
+
+    // Timer display
+    const display = document.createElement("div");
+    display.textContent = "00:00";
+
+    Object.assign(display.style, {
+        fontSize: "24px",
+        fontWeight: "bold",
+        color: "#00ff00",
+        textShadow: "0 1px 4px black"
+    });
+
+    // Start button
+    const startButton = document.createElement("button");
+    startButton.textContent = "START";
+
+    Object.assign(startButton.style, {
+        marginTop: "6px",
+        padding: "6px 18px",
+        background: "#00aa00",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        fontWeight: "bold",
+        cursor: "pointer",
+        fontSize: "13px"
+    });
+
+    container.appendChild(display);
+    container.appendChild(startButton);
+    document.body.appendChild(container);
+
+    function updateTimer() {
+        seconds++;
+
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+
+        display.textContent =
+            String(minutes).padStart(2, "0") + ":" +
+            String(secs).padStart(2, "0");
+
+        // At 17 minutes, change appearance
+        if (seconds >= 17 * 60) {
+            Object.assign(container.style, {
+                background: "rgba(255, 0, 0, 0.90)",
+                padding: "12px",
+                borderRadius: "10px"
+            });
+
+            Object.assign(display.style, {
+                fontSize: "34px",
+                color: "#ffffff",
+                textShadow: "none"
+            });
+        }
     }
 
-    const message =
-      `Found cookie(s):\n\n${found.join('\n')}\n\n` +
-      'Delete them and reload the page?';
-
-    if (confirm(message)) {
-      found.forEach(name => {
-        document.cookie =
-          `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-      });
-
-      console.log('Deleted:', found);
-      location.reload();
-    } else {
-      console.log('Cookie deletion cancelled.');
-    }
-  });
-
-  console.log('Ready — press F6 to check the cookies.');
+    startButton.addEventListener("click", () => {
+        startButton.remove();
+        interval = setInterval(updateTimer, 1000);
+    });
 })();
-})();
+
+
+
+
+
+
+
+// ADS
+
+// class="GenericVideoWrapper" id="GenericVideoWrapper"
+
+setTimeout(() => {
+    document.getElementById("GenericVideoWrapper")?.remove();
+    console.log("GenericVideoWrapper removed (if found).");
+}, 6000);
