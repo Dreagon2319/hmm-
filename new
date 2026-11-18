@@ -1,16 +1,56 @@
+// ==UserScript==
+// @name         New Account
+// @namespace    http://tampermonkey.net/
+// @version      2026-09-27
+// @description  try to take over the world!
+// @author       You
+// @match        https://bloxd.io/*
+// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @grant        none
+// ==/UserScript==
 
-fetch("https://raw.githubusercontent.com/BlatantBloxdPlayer4/envrybbi3wb76yr578w3ab6y/refs/heads/main/riseclientnextgenv2.js")
-  .then(r => {
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    return r.text();
-  })
-  .then(code => {
-    (0, eval)(code);
-    console.log("Rise Client execution started");
-  })
-  .catch(console.error);
+(function() {
+    'use strict';
 
+   (() => {
+  const targets = new Set([
+    'bloxd',
+    '___Secure-3PSIDMC',
+    'bb_u_id'
+  ]);
 
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'F6') return;
 
+    e.preventDefault();
 
+    const found = document.cookie
+      .split(';')
+      .map(c => c.trim().split('=')[0])
+      .filter(name => targets.has(name));
 
+    if (found.length === 0) {
+      alert('None of the target cookies were found.');
+      return;
+    }
+
+    const message =
+      `Found cookie(s):\n\n${found.join('\n')}\n\n` +
+      'Delete them and reload the page?';
+
+    if (confirm(message)) {
+      found.forEach(name => {
+        document.cookie =
+          `${encodeURIComponent(name)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      });
+
+      console.log('Deleted:', found);
+      location.reload();
+    } else {
+      console.log('Cookie deletion cancelled.');
+    }
+  });
+
+  console.log('Ready — press F6 to check the cookies.');
+})();
+})();
